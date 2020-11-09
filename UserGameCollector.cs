@@ -8,9 +8,10 @@ namespace apitest
 {
     class UserGameCollector
     {
-        static List<uint> gameIds = new List<uint>();
-        static List<int> universeIds = new List<int>();
-        static List<int> visits = new List<int>();
+        static List<string> gameIds = new List<string>();
+        static List<string> universeIds = new List<string>();
+        static List<string> visits = new List<string>();
+        static List<string> names = new List<string>();
 
         static int GetRandomId() {
             // Selects a random id
@@ -24,7 +25,7 @@ namespace apitest
             try {
                 // Creates a random ID
                 int id = GetRandomId();
-                Console.WriteLine("Player id: " + id);
+                Console.WriteLine("\nPlayer id: " + id);
 
                 string url = "https://games.roblox.com/v2/users/" + id + "/games?sortOrder=Asc&limit=100";
                 string response = await HttpManager.CreateHttpRequest(url);
@@ -44,19 +45,24 @@ namespace apitest
             JsonElement dataRoot = data.GetProperty("data");
 
             for (int i = 0; i < dataRoot.GetArrayLength(); i++) {
-                gameIds.Add(uint.Parse(dataRoot[i].GetProperty("rootPlace").GetProperty("id").ToString()));
+                gameIds.Add(dataRoot[i].GetProperty("rootPlace").GetProperty("id").ToString());
+                Console.WriteLine(gameIds[i] + ": " + dataRoot[i].GetProperty("name"));
+                names.Add(dataRoot[i].GetProperty("name").ToString());
             }
+            Console.WriteLine("\n");
 
             universeIds = await VisitsCounter.GetUniverseIDs(gameIds);
             visits = await VisitsCounter.GetPlaceVisits(universeIds);
 
-            // Gets the total visits
-            int totalVisits = 0;
-            foreach(int a in visits) {
-                totalVisits += a;
+            int total = 0;
+            int id = 0;
+            foreach (string v in visits) {
+                total += int.Parse(v);
+                Console.WriteLine("[Visits: "+v+"]: " + names[id]);
+                id++;
             }
 
-            Console.WriteLine(totalVisits + " total player visits");
+            Console.WriteLine("\n["+total + "]: total visits");
         }
 
         public static JsonDocument CreateDocument(string jsonFile) {
